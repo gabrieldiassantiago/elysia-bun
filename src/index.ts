@@ -1,50 +1,52 @@
 import { Elysia } from "elysia";
-import {z} from 'zod'
-import openapi from '@elysiajs/openapi'
+import { z } from 'zod';
+import openapi from '@elysiajs/openapi';
+import { db } from "./db";
+import { postsTable } from "./db/schema";
 
 
 const app = new Elysia()
 
-.use(openapi({
-  mapJsonSchema: {
-    zod: z.toJSONSchema
-  }
-}))
+  .use(openapi({
+    mapJsonSchema: {
+      zod: z.toJSONSchema
+    }
+  }))
 
-.post('/posts', ({body}) => {
+  .post("/posts", async ({ body }) => {
 
-  if (body.title.length > 4) {
-   return new Response('titulo grande', {status: 400});
-  }
-  
-  return {
-    id: crypto.randomUUID(),
-    createdAt: new Date(),
-    title: body.title,
-    content: body.content,
-  };
+      const [result] = await db.insert(postsTable).values({
+        title: body.title,
+        content: body.content,
+      }).returning({
+        id: postsTable.id,
+        title: postsTable.title,
+        content: postsTable.content
+      });
+      return {
+        id: result.id,
+        title: result.title,
+        content: result.content
+      };
+    },
+    {
+      body: z.object({
+        title: z.string().min(1),
+        content: z.string().min(1)
+      }),
+      response: {
+        200: z.object({
+          id: z.string().uuid(),
+          title: z.string(),
+          content: z.string()
+        })
+      },
+      description: "Create a new post",
+      summary: "Create Post"
+    }
+)
 
-},
- {
-
-  body: z.object({
-    title: z.string().trim().min(1),
-    content: z.string().optional()
-  }),
-  response: {
-    200: z.object({
-      id: z.string().uuid(),
-      title: z.string(),
-      content: z.string().optional(),
-      createdAt: z.date()
-    })
-  }
-})
-
-
-
-.listen(3000);
-
+  .listen(3000);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
