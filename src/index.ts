@@ -1,17 +1,24 @@
 import { Elysia } from "elysia";
-import { z } from 'zod';
+import * as z from 'zod'
 import openapi from '@elysiajs/openapi';
 import { db } from "./db";
 import { postsTable } from "./db/schema";
+import { auth, OpenAPI } from "./lib/auth";
 
 
 const app = new Elysia()
+  .mount(auth.handler)
 
   .use(openapi({
     mapJsonSchema: {
       zod: z.toJSONSchema
+    },
+    documentation: {
+      components: await OpenAPI.components,
+      paths: await OpenAPI.getPaths()
     }
   }))
+
 
   .post("/posts", async ({ body }) => {
 
