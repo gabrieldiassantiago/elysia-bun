@@ -12,6 +12,9 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
+    advanced: {
+        database: {generateId: false}
+    },
     plugins: [openAPI()]
 });
 
@@ -20,12 +23,12 @@ let _schema: ReturnType<typeof auth.api.generateOpenAPISchema>
 const getSchema = async () => (_schema ??= auth.api.generateOpenAPISchema())
 
 export const OpenAPI = {
-    getPaths: (prefix = '/auth/api') =>
+    getPaths: () =>
         getSchema().then(({ paths }) => {
             const reference: typeof paths = Object.create(null)
 
             for (const path of Object.keys(paths)) {
-                const key = prefix + path
+                const key = '/api/auth' + path
                 reference[key] = paths[path]
 
                 for (const method of Object.keys(paths[path])) {
