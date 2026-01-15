@@ -1,11 +1,12 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../../db";
-import { openAPI } from 'better-auth/plugins'
+import { openAPI, jwt } from 'better-auth/plugins'
 
 export const auth = betterAuth({
+
     database: drizzleAdapter(db, {
-        provider: "pg",
+    provider: "pg",
         usePlural: true,
         camelCase: true
     }),
@@ -15,7 +16,9 @@ export const auth = betterAuth({
     advanced: {
         database: {generateId: false}
     },
-    plugins: [openAPI()]
+    plugins: [
+        openAPI()
+    ]
 });
 
 

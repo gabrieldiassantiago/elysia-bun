@@ -15,14 +15,16 @@ const app = new Elysia()
     mapJsonSchema: {
       zod: z.toJSONSchema
     },
+    
     documentation: {
       components: await OpenAPI.components,
       paths: await OpenAPI.getPaths()
     }
+
   }))
 
 
-  .post("/posts", async ({ body }) => {
+  .post("/posts", async ({ body, user }) => {
 
       const [result] = await db.insert(postsTable).values({
         title: body.title,
@@ -32,10 +34,13 @@ const app = new Elysia()
         title: postsTable.title,
         content: postsTable.content
       });
+
       return {
         id: result.id,
         title: result.title,
-        content: result.content
+        content: result.content,
+        verified: user.emailVerified,
+        user: user.email
       };
     },
     {
@@ -48,7 +53,9 @@ const app = new Elysia()
         200: z.object({
           id: z.string().uuid(),
           title: z.string(),
-          content: z.string()
+          content: z.string(),
+          user: z.string().email(),
+          verified: z.boolean()
         })
       },
       description: "Create a new post",
