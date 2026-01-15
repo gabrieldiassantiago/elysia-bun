@@ -4,10 +4,12 @@ import openapi from '@elysiajs/openapi';
 import { db } from "./db";
 import { postsTable } from "./db/schema";
 import { auth, OpenAPI } from "./lib/auth";
+import { betterAuth } from "./macros/auth";
 
 
 const app = new Elysia()
   .mount(auth.handler)
+  .use(betterAuth)
 
   .use(openapi({
     mapJsonSchema: {
@@ -37,6 +39,7 @@ const app = new Elysia()
       };
     },
     {
+      auth: true,
       body: z.object({
         title: z.string().min(1),
         content: z.string().min(1)
